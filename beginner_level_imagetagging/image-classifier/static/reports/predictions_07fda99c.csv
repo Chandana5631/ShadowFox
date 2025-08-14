@@ -1,0 +1,14 @@
+timestamp,2025-08-14 20:31:54
+image_file,latest.png
+
+rank,class,confidence_percent
+1,Dog,49.23
+2,Cat,48.70
+3,Bird,1.24
+4,Airplane,0.58
+5,Deer,0.19
+6,Horse,0.03
+7,Ship,0.03
+8,Truck,0.01
+9,Frog,0.00
+10,Automobile,0.00

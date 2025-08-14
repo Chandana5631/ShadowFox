@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Classifier (ImageNet)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🖼️ Image Classifier (ImageNet)</h1>
+
+    <form action="/predict" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept="image/*" required>
+      <button type="submit">Upload & Predict</button>
+    </form>
+
+    {% if image %}
+      <h3>Uploaded Image:</h3>
+      <img src="{{ image }}" alt="Uploaded Image" width="250">
+    {% endif %}
+
+    {% if predictions %}
+      <h3>Top Predictions:</h3>
+      <ul>
+        {% for label, prob in predictions %}
+          <li><b>{{ label }}</b>: {{ "%.2f"|format(prob) }}%</li>
+        {% endfor %}
+      </ul>
+
+      <form action="/download_report" method="post">
+        {% for label, prob in predictions %}
+          <input type="hidden" name="predictions[]" value="{{ label }}: {{ "%.2f"|format(prob) }}">
+        {% endfor %}
+        <button type="submit">Download Report (CSV)</button>
+      </form>
+    {% endif %}
+  </div>
+</body>
+</html>
