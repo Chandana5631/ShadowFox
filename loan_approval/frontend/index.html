@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Loan Approval Predictor</title>
+	<style>
+		body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+		.grid { display: grid; grid-template-columns: repeat(3, minmax(240px, 1fr)); gap: 12px; }
+		.card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; }
+		label { display: block; font-weight: 600; margin-bottom: 6px; }
+		input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+		button { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
+		button:disabled { opacity: 0.6; cursor: not-allowed; }
+		.result { margin-top: 16px; padding: 12px; border-radius: 6px; background: #f1f5f9; }
+	</style>
+</head>
+<body>
+	<h1>Loan Approval Predictor</h1>
+	<p>Enter applicant and loan details, then click Predict.</p>
+
+	<div class="grid card">
+		<div>
+			<label for="Gender">Gender</label>
+			<select id="Gender">
+				<option value="">(missing)</option>
+				<option>Male</option>
+				<option>Female</option>
+			</select>
+		</div>
+		<div>
+			<label for="Married">Married</label>
+			<select id="Married">
+				<option value="">(missing)</option>
+				<option>Yes</option>
+				<option>No</option>
+			</select>
+		</div>
+		<div>
+			<label for="Dependents">Dependents</label>
+			<input id="Dependents" type="text" placeholder="0" />
+		</div>
+		<div>
+			<label for="Education">Education</label>
+			<select id="Education">
+				<option value="">(missing)</option>
+				<option>Graduate</option>
+				<option>Not Graduate</option>
+			</select>
+		</div>
+		<div>
+			<label for="Self_Employed">Self Employed</label>
+			<select id="Self_Employed">
+				<option value="">(missing)</option>
+				<option>Yes</option>
+				<option>No</option>
+			</select>
+		</div>
+		<div>
+			<label for="Property_Area">Property Area</label>
+			<select id="Property_Area">
+				<option value="">(missing)</option>
+				<option>Urban</option>
+				<option>Semiurban</option>
+				<option>Rural</option>
+			</select>
+		</div>
+		<div>
+			<label for="ApplicantIncome">Applicant Income</label>
+			<input id="ApplicantIncome" type="number" placeholder="5000" />
+		</div>
+		<div>
+			<label for="CoapplicantIncome">Coapplicant Income</label>
+			<input id="CoapplicantIncome" type="number" placeholder="0" />
+		</div>
+		<div>
+			<label for="LoanAmount">Loan Amount</label>
+			<input id="LoanAmount" type="number" placeholder="128" />
+		</div>
+		<div>
+			<label for="Loan_Amount_Term">Loan Amount Term</label>
+			<input id="Loan_Amount_Term" type="number" placeholder="360" />
+		</div>
+		<div>
+			<label for="Credit_History">Credit History</label>
+			<select id="Credit_History">
+				<option value="">(missing)</option>
+				<option value="1">1</option>
+				<option value="0">0</option>
+			</select>
+		</div>
+	</div>
+
+	<div style="margin-top: 16px;">
+		<button id="predictBtn">Predict</button>
+	</div>
+
+	<div id="output" class="result" style="display:none;"></div>
+
+	<script>
+		function collectRecord(){
+			const get = id => document.getElementById(id).value;
+			const num = v => (v === '' ? null : Number(v));
+			const str = v => (v === '' ? null : v);
+			return {
+				Gender: str(get('Gender')),
+				Married: str(get('Married')),
+				Dependents: str(get('Dependents')),
+				Education: str(get('Education')),
+				Self_Employed: str(get('Self_Employed')),
+				Property_Area: str(get('Property_Area')),
+				ApplicantIncome: num(get('ApplicantIncome')),
+				CoapplicantIncome: num(get('CoapplicantIncome')),
+				LoanAmount: num(get('LoanAmount')),
+				Loan_Amount_Term: num(get('Loan_Amount_Term')),
+				Credit_History: (get('Credit_History') === '' ? null : Number(get('Credit_History')))
+			};
+		}
+
+		document.getElementById('predictBtn').addEventListener('click', async () => {
+			const btn = document.getElementById('predictBtn');
+			const out = document.getElementById('output');
+			btn.disabled = true; out.style.display = 'block'; out.textContent = 'Predicting...';
+			try{
+				const payload = { records: [collectRecord()] };
+				const res = await fetch('/predict', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+				if(!res.ok){ throw new Error(await res.text()); }
+				const json = await res.json();
+				out.innerHTML = `<strong>Prediction:</strong> ${json.predictions[0]}<br/><strong>Approval probability:</strong> ${json.probabilities ? (json.probabilities[0]).toFixed(3) : 'N/A'}`;
+			} catch(err){
+				out.textContent = 'Error: ' + err.message;
+			} finally {
+				btn.disabled = false;
+			}
+		});
+	</script>
+</body>
+</html>
